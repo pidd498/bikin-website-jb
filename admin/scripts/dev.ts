@@ -1,27 +1,30 @@
 import { startServer } from '../server/index.js';
-import { createServer } from 'vite';
+import { createServer, ViteDevServer } from 'vite';
 
-let viteServer;
+let viteServer: ViteDevServer | undefined;
 
 async function startDev() {
-  // Start the Express API server first
-  await startServer(3001);
+  try {
+    // Start the Express API server first
+    await startServer(3001);
+    console.log('Express API server started on port 3001');
 
-  // Then start Vite in dev mode
-  viteServer = await createServer({
-    configFile: './vite.config.js',
-  });
+    // Then start Vite in dev mode
+    viteServer = await createServer({
+      configFile: './vite.config.js',
+    });
 
-  await viteServer.listen();
-  console.log(
-    `Vite dev server running on port ${viteServer.config.server.port}`,
-  );
+    await viteServer.listen();
+    console.log(
+      `Vite dev server running on port ${viteServer.config.server.port}`,
+    );
+  } catch (error) {
+    console.error('Error starting dev servers:', error);
+    process.exit(1);
+  }
 }
 
-/**
- * Handle tsx watch restarts
- * This ensures Vite is closed gracefully before the process exits
- */
+// Handle tsx watch restarts
 process.on('SIGTERM', async () => {
   console.log('Received SIGTERM, closing servers gracefully...');
 
@@ -34,7 +37,6 @@ process.on('SIGTERM', async () => {
     }
   }
 
-  // Exit cleanly so tsx can restart the process
   process.exit(0);
 });
 
